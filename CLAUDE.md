@@ -1,0 +1,13 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**Always** read @AGENTS.md for base rules.
+
+**Always** read @README.md for a project overview.
+
+**Always** read @DESIGN.md for project *design* overview.
+
+
