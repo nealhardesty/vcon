@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Vcon.Core</RootNamespace>
+    <AssemblyName>Vcon.Core</AssemblyName>
+  </PropertyGroup>
+</Project>

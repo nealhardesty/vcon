@@ -1,0 +1,12 @@
+<Window x:Class="Vcon.Overlay.Windows.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowState="Maximized"
+        Title="vcon">
+    <Canvas x:Name="ControlCanvas" />
+</Window>

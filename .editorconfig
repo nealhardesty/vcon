@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+# Suppress LoggerMessage source generator recommendations (CA1848) — acceptable for personal project
+dotnet_diagnostic.CA1848.severity = none
+# Suppress locale-sensitive formatting warning for Serilog file config
+dotnet_diagnostic.CA1305.severity = suggestion
+
+[tests/**.cs]
+# Test methods use underscore naming by convention
+dotnet_diagnostic.CA1707.severity = none

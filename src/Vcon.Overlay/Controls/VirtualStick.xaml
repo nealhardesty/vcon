@@ -1,0 +1,17 @@
+<UserControl x:Class="Vcon.Overlay.Controls.VirtualStick"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Style="{StaticResource VirtualControlBase}">
+    <Grid>
+        <Ellipse x:Name="ZoneEllipse"
+                 Fill="{StaticResource StickZoneBrush}"
+                 Stroke="{StaticResource ControlStrokeBrush}"
+                 StrokeThickness="2" />
+        <Canvas x:Name="ThumbCanvas" ClipToBounds="False">
+            <Ellipse x:Name="ThumbEllipse"
+                     Fill="{StaticResource StickThumbBrush}"
+                     Stroke="{StaticResource ControlStrokeBrush}"
+                     StrokeThickness="1" />
+        </Canvas>
+    </Grid>
+</UserControl>

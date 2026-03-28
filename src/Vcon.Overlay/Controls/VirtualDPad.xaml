@@ -1,0 +1,27 @@
+<UserControl x:Class="Vcon.Overlay.Controls.VirtualDPad"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Style="{StaticResource VirtualControlBase}">
+    <Grid>
+        <!-- Cross/plus shape via overlapping rectangles -->
+        <Canvas x:Name="DPadCanvas" ClipToBounds="True">
+            <!-- Vertical bar (Up/Down) -->
+            <Border x:Name="VerticalBar"
+                    Background="{StaticResource DPadBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4" />
+            <!-- Horizontal bar (Left/Right) -->
+            <Border x:Name="HorizontalBar"
+                    Background="{StaticResource DPadBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4" />
+            <!-- Directional highlights -->
+            <Border x:Name="UpHighlight" Background="{StaticResource DPadHighlightBrush}" Opacity="0" CornerRadius="4" />
+            <Border x:Name="DownHighlight" Background="{StaticResource DPadHighlightBrush}" Opacity="0" CornerRadius="4" />
+            <Border x:Name="LeftHighlight" Background="{StaticResource DPadHighlightBrush}" Opacity="0" CornerRadius="4" />
+            <Border x:Name="RightHighlight" Background="{StaticResource DPadHighlightBrush}" Opacity="0" CornerRadius="4" />
+        </Canvas>
+    </Grid>
+</UserControl>
