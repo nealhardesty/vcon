@@ -29,6 +29,7 @@ public partial class OverlayViewModel : ObservableObject
 {
     private readonly IProfileManager _profileManager;
     private readonly InputEmulatorFactory _emulatorFactory;
+    private readonly EditorViewModel _editorViewModel;
     private readonly ILogger<OverlayViewModel> _logger;
 
     private IInputEmulator? _emulator;
@@ -76,16 +77,26 @@ public partial class OverlayViewModel : ObservableObject
     [ObservableProperty]
     private EmulatorConnectionStatus _emulatorStatus;
 
+    public EditorViewModel Editor => _editorViewModel;
+
     public OverlayViewModel(
         IProfileManager profileManager,
         InputEmulatorFactory emulatorFactory,
+        EditorViewModel editorViewModel,
         ILogger<OverlayViewModel> logger)
     {
         _profileManager = profileManager;
         _emulatorFactory = emulatorFactory;
+        _editorViewModel = editorViewModel;
         _logger = logger;
 
         _profileManager.ActiveProfileChanged += OnActiveProfileChanged;
+
+        _editorViewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(EditorViewModel.IsEditing))
+                IsEditMode = _editorViewModel.IsEditing;
+        };
     }
 
     /// <summary>
@@ -145,15 +156,16 @@ public partial class OverlayViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Toggles layout edit mode. When editing, input submission is suppressed.
+    /// Toggles layout edit mode. When entering, delegates to <see cref="EditorViewModel"/>
+    /// which handles locked-profile cloning and snapshotting. Exiting is done via
+    /// explicit Save/Discard in the tray menu.
     /// </summary>
-    public void ToggleEditMode()
+    public async void ToggleEditMode()
     {
-        IsEditMode = !IsEditMode;
-
-        if (IsEditMode)
+        if (!IsEditMode)
         {
             _controllerState.Reset();
+            await _editorViewModel.StartEditingAsync();
         }
     }
 

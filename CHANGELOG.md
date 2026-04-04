@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Edit mode with drag-to-move and resize**: Controls are now freely movable and resizable in edit mode. Each control gets a cyan edit overlay with a resize grip at the bottom-right corner. Drag to reposition, drag the grip to resize. Anchor-aware coordinate conversion ensures positions remain correct regardless of horizontal/vertical anchoring.
+- **Profile snapshot / save / discard**: Entering edit mode takes a JSON snapshot of the profile. The user can explicitly save changes or discard to restore the original layout, via the tray menu Profiles submenu.
+- **Locked default profile with auto-clone**: The "xbox-standard" profile is locked from in-app editing. Attempting to enter edit mode on it automatically clones to "Xbox Standard (copy)", switches to the clone, and enters edit mode on the copy.
+- **Profile cloning**: `CloneProfileAsync` added to `IProfileManager` and implemented in `ProfileManager`. Generates unique IDs (`{id}-copy`, `{id}-copy-2`, etc.) and deep-copies all profile data via JSON round-trip.
+- **Tray menu: Save Profile / Discard Changes**: Visible only while in edit mode, allowing the user to persist or revert layout changes.
+- **Tray menu: Clone Active Profile...**: Clones the current profile and switches to the clone.
+- **Tray menu: Open Profiles Directory**: Opens `%APPDATA%/vcon/profiles/` in Windows Explorer.
+- **`IProfileManager.ProfilesDirectory`**: Exposes the user profiles directory path.
+- **Layout auto-reload on profile switch**: `OverlayWindow` now subscribes to `ActiveProfile` changes and reloads the layout automatically, enabling seamless profile switching and clone workflows.
 - **`make install-vigembus`**: Makefile target that downloads the latest ViGEmBus x64 MSI from GitHub releases and launches the installer with UAC elevation.
 - **Tray menu "Install ViGEmBus Driver..."**: When the driver is missing, the tray context menu shows an option that downloads the latest installer from GitHub and runs it with UAC elevation. Shows balloon-tip progress at each step (checking release, downloading, launching installer) with specific error messages for network failures, timeouts, UAC cancellation, and installer errors. After successful installation, vcon automatically reconnects the virtual controller. All steps are also logged for diagnostics.
 - **Tray menu "Xbox Controller Mode" / "Keyboard Mode"**: Two radio-style menu items to switch the active profile's input mode on the fly. Changes the mode, saves the profile, and reconnects the emulator. Check marks indicate the currently active mode.

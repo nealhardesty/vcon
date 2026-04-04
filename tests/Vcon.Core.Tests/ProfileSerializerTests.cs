@@ -24,7 +24,12 @@ public sealed class ProfileSerializerTests
                     Id = "a-button",
                     Type = ControlType.Button,
                     Label = "A",
-                    Position = new PositionInfo { X = 0.1, Y = 0.2 },
+                    Position = new PositionInfo
+                    {
+                        X = 0.1, Y = 0.2,
+                        HAnchor = HorizontalAnchor.Right,
+                        VAnchor = VerticalAnchor.Bottom,
+                    },
                     Size = new SizeInfo { Width = 48, Height = 48, Radius = 0 },
                     Binding = new InputBinding
                     {
@@ -154,6 +159,8 @@ public sealed class ProfileSerializerTests
             Assert.Equal(e.DeadZone, a.DeadZone);
             Assert.Equal(e.Position.X, a.Position.X);
             Assert.Equal(e.Position.Y, a.Position.Y);
+            Assert.Equal(e.Position.HAnchor, a.Position.HAnchor);
+            Assert.Equal(e.Position.VAnchor, a.Position.VAnchor);
             Assert.Equal(e.Size.Width, a.Size.Width);
             Assert.Equal(e.Size.Height, a.Size.Height);
             Assert.Equal(e.Size.Radius, a.Size.Radius);

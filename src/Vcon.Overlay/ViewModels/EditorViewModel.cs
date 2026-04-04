@@ -1,17 +1,22 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Vcon.Core.Abstractions;
+using Vcon.Core.Configuration;
 using Vcon.Core.Models;
 
 namespace Vcon.Overlay.ViewModels;
 
 /// <summary>
-/// ViewModel for the layout editor: dragging, resizing, and saving control positions.
+/// ViewModel for the layout editor: dragging, resizing, snapshot/restore, and profile locking.
 /// </summary>
 public partial class EditorViewModel : ObservableObject
 {
+    private const string LockedProfileId = "xbox-standard";
+
     private readonly IProfileManager _profileManager;
     private readonly ILogger<EditorViewModel> _logger;
+
+    private string? _profileSnapshot;
 
     [ObservableProperty]
     private bool _isEditing;
@@ -22,6 +27,9 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty]
     private string? _selectedControlId;
 
+    /// <summary>Raised after a discard so the overlay can reload layout from the restored profile.</summary>
+    public event EventHandler? LayoutReloadRequested;
+
     public EditorViewModel(IProfileManager profileManager, ILogger<EditorViewModel> logger)
     {
         _profileManager = profileManager;
@@ -29,44 +37,112 @@ public partial class EditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Enters layout edit mode.
+    /// Enters layout edit mode. If the active profile is locked (default),
+    /// it is automatically cloned and the clone becomes active before editing begins.
     /// </summary>
-    public void StartEditing()
+    public async Task StartEditingAsync()
     {
-        IsEditing = true;
+        if (IsEditing)
+            return;
+
+        try
+        {
+            var profile = _profileManager.ActiveProfile;
+
+            if (IsProfileLocked(profile))
+            {
+                _logger.LogInformation("Profile '{Id}' is locked, cloning before edit", profile.Id);
+                var clone = await _profileManager.CloneProfileAsync(profile.Id);
+                await _profileManager.SwitchProfileAsync(clone.Id);
+                profile = _profileManager.ActiveProfile;
+            }
+
+            _profileSnapshot = ProfileSerializer.SerializeProfile(profile);
+            IsEditing = true;
+            _logger.LogInformation("Entered edit mode for profile '{Id}'", profile.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enter edit mode");
+        }
     }
 
     /// <summary>
-    /// Exits layout edit mode and saves changes to the active profile.
+    /// Saves the current profile to disk and exits edit mode.
     /// </summary>
-    public async Task StopEditingAsync()
+    public async Task SaveAndStopAsync()
     {
-        IsEditing = false;
-        SelectedControlId = null;
+        if (!IsEditing)
+            return;
 
         try
         {
             var profile = _profileManager.ActiveProfile;
             await _profileManager.SaveProfileAsync(profile);
-            _logger.LogInformation("Saved profile '{ProfileName}' after editing", profile.Name);
+            _logger.LogInformation("Saved profile '{Name}' after editing", profile.Name);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save profile after editing");
         }
+        finally
+        {
+            _profileSnapshot = null;
+            SelectedControlId = null;
+            IsEditing = false;
+        }
     }
 
     /// <summary>
-    /// Moves a control to a new normalized position within the active profile.
+    /// Restores the profile from the pre-edit snapshot and exits edit mode.
     /// </summary>
-    public void MoveControl(string id, double normalizedX, double normalizedY)
+    public async Task DiscardAndStopAsync()
+    {
+        if (!IsEditing)
+            return;
+
+        try
+        {
+            if (_profileSnapshot is not null)
+            {
+                var restored = ProfileSerializer.DeserializeProfile(_profileSnapshot);
+                if (restored is not null)
+                {
+                    var active = _profileManager.ActiveProfile;
+                    active.Controls = restored.Controls;
+                    active.Opacity = restored.Opacity;
+                    active.Scale = restored.Scale;
+
+                    await _profileManager.SaveProfileAsync(active);
+                    LayoutReloadRequested?.Invoke(this, EventArgs.Empty);
+                    _logger.LogInformation("Discarded changes for profile '{Name}'", active.Name);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to discard editing changes");
+        }
+        finally
+        {
+            _profileSnapshot = null;
+            SelectedControlId = null;
+            IsEditing = false;
+        }
+    }
+
+    /// <summary>
+    /// Moves a control to a new position. Values are anchor-relative offsets
+    /// (distance from the control's configured anchor edge, normalized 0.0-1.0).
+    /// </summary>
+    public void MoveControl(string id, double anchorRelativeX, double anchorRelativeY)
     {
         var control = FindControl(id);
         if (control is null)
             return;
 
-        control.Position.X = Math.Clamp(normalizedX, 0.0, 1.0);
-        control.Position.Y = Math.Clamp(normalizedY, 0.0, 1.0);
+        control.Position.X = Math.Clamp(anchorRelativeX, 0.0, 1.0);
+        control.Position.Y = Math.Clamp(anchorRelativeY, 0.0, 1.0);
     }
 
     /// <summary>
@@ -80,7 +156,13 @@ public partial class EditorViewModel : ObservableObject
 
         control.Size.Width = Math.Max(width, 20);
         control.Size.Height = Math.Max(height, 20);
+
+        if (control.Type == ControlType.Stick)
+            control.Size.Radius = Math.Min(control.Size.Width, control.Size.Height) / 2;
     }
+
+    private static bool IsProfileLocked(ControllerProfile profile)
+        => string.Equals(profile.Id, LockedProfileId, StringComparison.OrdinalIgnoreCase);
 
     private ControlDefinition? FindControl(string id)
     {

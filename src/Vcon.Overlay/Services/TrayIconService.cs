@@ -43,7 +43,7 @@ public sealed class TrayIconService : IDisposable
         _notifyIcon = new NotifyIcon
         {
             Icon = SystemIcons.Application,
-            Text = "vcon — Virtual Controller Overlay",
+            Text = "vcon - Virtual Controller Overlay",
             Visible = true,
             ContextMenuStrip = BuildContextMenu(),
         };
@@ -108,8 +108,8 @@ public sealed class TrayIconService : IDisposable
             case EmulatorConnectionStatus.DriverUnavailable:
                 _notifyIcon.ShowBalloonTip(
                     5000,
-                    "vcon — Driver Not Found",
-                    "ViGEmBus driver is not installed — Xbox 360 controller emulation disabled.\n"
+                    "vcon - Driver Not Found",
+                    "ViGEmBus driver is not installed - Xbox 360 controller emulation disabled.\n"
                     + "Install from https://github.com/nefarius/ViGEmBus/releases",
                     ToolTipIcon.Warning);
                 break;
@@ -117,7 +117,7 @@ public sealed class TrayIconService : IDisposable
             case EmulatorConnectionStatus.Failed:
                 _notifyIcon.ShowBalloonTip(
                     5000,
-                    "vcon — Controller Connection Failed",
+                    "vcon - Controller Connection Failed",
                     "Failed to connect the virtual controller. Check logs for details.",
                     ToolTipIcon.Error);
                 break;
@@ -304,7 +304,7 @@ public sealed class TrayIconService : IDisposable
 
                 if (_viewModel?.EmulatorStatus == EmulatorConnectionStatus.Connected)
                 {
-                    Balloon("ViGEmBus installed — virtual controller connected!", ToolTipIcon.Info);
+                    Balloon("ViGEmBus installed - virtual controller connected!", ToolTipIcon.Info);
                 }
                 else
                 {
@@ -351,7 +351,9 @@ public sealed class TrayIconService : IDisposable
             profilesItem.DropDownItems.Clear();
             var profiles = await _profileManager.GetAllProfilesAsync();
             var activeId = _profileManager.ActiveProfile.Id;
+            var isEditing = _viewModel?.Editor.IsEditing ?? false;
 
+            // --- Profile list ---
             foreach (var profile in profiles)
             {
                 var item = new ToolStripMenuItem(profile.Name)
@@ -368,6 +370,69 @@ public sealed class TrayIconService : IDisposable
 
                 profilesItem.DropDownItems.Add(item);
             }
+
+            // --- Edit actions (visible only while editing) ---
+            profilesItem.DropDownItems.Add(new ToolStripSeparator());
+
+            var saveItem = new ToolStripMenuItem("Save Profile")
+            {
+                Visible = isEditing,
+            };
+            saveItem.Click += async (_, _) =>
+            {
+                if (_viewModel is not null)
+                    await _viewModel.Editor.SaveAndStopAsync();
+            };
+            profilesItem.DropDownItems.Add(saveItem);
+
+            var discardItem = new ToolStripMenuItem("Discard Changes")
+            {
+                Visible = isEditing,
+            };
+            discardItem.Click += async (_, _) =>
+            {
+                if (_viewModel is not null)
+                    await _viewModel.Editor.DiscardAndStopAsync();
+            };
+            profilesItem.DropDownItems.Add(discardItem);
+
+            // --- Profile management ---
+            profilesItem.DropDownItems.Add(new ToolStripSeparator());
+
+            var cloneItem = new ToolStripMenuItem("Clone Active Profile...");
+            cloneItem.Click += async (_, _) =>
+            {
+                try
+                {
+                    var clone = await _profileManager.CloneProfileAsync(activeId);
+                    await _viewModel!.SwitchProfileAsync(clone.Id);
+                    Balloon($"Cloned to \"{clone.Name}\"", ToolTipIcon.Info);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to clone profile");
+                    Balloon("Failed to clone profile.", ToolTipIcon.Error);
+                }
+            };
+            profilesItem.DropDownItems.Add(cloneItem);
+
+            var openDirItem = new ToolStripMenuItem("Open Profiles Directory");
+            openDirItem.Click += (_, _) =>
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = _profileManager.ProfilesDirectory,
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open profiles directory");
+                }
+            };
+            profilesItem.DropDownItems.Add(openDirItem);
         }
         catch (Exception ex)
         {

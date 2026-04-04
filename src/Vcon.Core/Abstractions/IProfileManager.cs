@@ -19,8 +19,14 @@ public interface IProfileManager
     /// <summary>Delete a profile by ID.</summary>
     Task<bool> DeleteProfileAsync(string profileId, CancellationToken ct = default);
 
+    /// <summary>Clone an existing profile, assigning a new unique ID and optional display name.</summary>
+    Task<ControllerProfile> CloneProfileAsync(string sourceId, string? newName = null, CancellationToken ct = default);
+
     /// <summary>Get the currently active profile.</summary>
     ControllerProfile ActiveProfile { get; }
+
+    /// <summary>Absolute path to the user profiles directory.</summary>
+    string ProfilesDirectory { get; }
 
     /// <summary>Switch to a different profile by ID.</summary>
     Task SwitchProfileAsync(string profileId, CancellationToken ct = default);

@@ -1,176 +1,364 @@
 {
-  "id": "xbox-standard",
-  "name": "Xbox Standard",
+  "id": "xbox-standard-copy",
+  "name": "Xbox Standard (copy)",
   "mode": "xInput",
   "opacity": 0.7,
-  "scale": 1.0,
+  "scale": 1,
   "controls": [
-    {
-      "id": "a-button",
-      "type": "button",
-      "label": "A",
-      "position": { "x": 0.85, "y": 0.60 },
-      "size": { "width": 56, "height": 56 },
-      "style": { "fill": "#107C10", "stroke": "#0E6B0E" },
-      "binding": {
-        "xInput": "A",
-        "keyboard": "Space"
-      }
-    },
-    {
-      "id": "b-button",
-      "type": "button",
-      "label": "B",
-      "position": { "x": 0.90, "y": 0.52 },
-      "size": { "width": 56, "height": 56 },
-      "style": { "fill": "#E81123", "stroke": "#C50F1F" },
-      "binding": {
-        "xInput": "B",
-        "keyboard": "Escape"
-      }
-    },
-    {
-      "id": "x-button",
-      "type": "button",
-      "label": "X",
-      "position": { "x": 0.80, "y": 0.52 },
-      "size": { "width": 56, "height": 56 },
-      "style": { "fill": "#0078D7", "stroke": "#005A9E" },
-      "binding": {
-        "xInput": "X",
-        "keyboard": "E"
-      }
-    },
-    {
-      "id": "y-button",
-      "type": "button",
-      "label": "Y",
-      "position": { "x": 0.85, "y": 0.44 },
-      "size": { "width": 56, "height": 56 },
-      "style": { "fill": "#FDB813", "stroke": "#D69E10" },
-      "binding": {
-        "xInput": "Y",
-        "keyboard": "R"
-      }
-    },
-    {
-      "id": "left-bumper",
-      "type": "button",
-      "label": "LB",
-      "position": { "x": 0.10, "y": 0.15 },
-      "size": { "width": 80, "height": 40 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
-      "binding": {
-        "xInput": "LeftShoulder",
-        "keyboard": "Q"
-      }
-    },
-    {
-      "id": "right-bumper",
-      "type": "button",
-      "label": "RB",
-      "position": { "x": 0.83, "y": 0.15 },
-      "size": { "width": 80, "height": 40 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
-      "binding": {
-        "xInput": "RightShoulder",
-        "keyboard": "P"
-      }
-    },
-    {
-      "id": "start",
-      "type": "button",
-      "label": "Start",
-      "position": { "x": 0.55, "y": 0.45 },
-      "size": { "width": 48, "height": 32 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
-      "binding": {
-        "xInput": "Start",
-        "keyboard": "Enter"
-      }
-    },
     {
       "id": "back",
       "type": "button",
-      "label": "Back",
-      "position": { "x": 0.40, "y": 0.45 },
-      "size": { "width": 48, "height": 32 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
+      "label": "back",
+      "position": {
+        "x": 0.44331250000000005,
+        "y": 0.02,
+        "hAnchor": "left",
+        "vAnchor": "top"
+      },
+      "size": {
+        "width": 56,
+        "height": 30,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555"
+      },
       "binding": {
         "xInput": "Back",
         "keyboard": "Backspace"
-      }
+      },
+      "deadZone": 0
     },
     {
       "id": "guide",
       "type": "button",
-      "label": "Guide",
-      "position": { "x": 0.475, "y": 0.38 },
-      "size": { "width": 40, "height": 40 },
-      "style": { "fill": "#107C10", "stroke": "#0E6B0E" },
+      "label": "guide",
+      "position": {
+        "x": 0.488,
+        "y": 0.02,
+        "hAnchor": "left",
+        "vAnchor": "top"
+      },
+      "size": {
+        "width": 48,
+        "height": 30,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#107C10",
+        "stroke": "#0E6B0E"
+      },
       "binding": {
         "xInput": "Guide",
         "keyboard": "Home"
-      }
+      },
+      "deadZone": 0
     },
     {
-      "id": "left-stick",
-      "type": "stick",
-      "label": "LS",
-      "position": { "x": 0.15, "y": 0.45 },
-      "size": { "width": 140, "height": 140, "radius": 70 },
-      "deadZone": 0.15,
+      "id": "start",
+      "type": "button",
+      "label": "start",
+      "position": {
+        "x": 0.5257343750000001,
+        "y": 0.02,
+        "hAnchor": "left",
+        "vAnchor": "top"
+      },
+      "size": {
+        "width": 56,
+        "height": 30,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555"
+      },
       "binding": {
-        "xInput": "LeftThumb",
-        "keyboardDirectional": { "up": "W", "down": "S", "left": "A", "right": "D" }
-      }
-    },
-    {
-      "id": "right-stick",
-      "type": "stick",
-      "label": "RS",
-      "position": { "x": 0.72, "y": 0.65 },
-      "size": { "width": 120, "height": 120, "radius": 60 },
-      "deadZone": 0.15,
-      "binding": {
-        "xInput": "RightThumb",
-        "keyboardDirectional": { "up": "Up", "down": "Down", "left": "Left", "right": "Right" }
-      }
+        "xInput": "Start",
+        "keyboard": "Enter"
+      },
+      "deadZone": 0
     },
     {
       "id": "left-trigger",
       "type": "trigger",
-      "label": "LT",
-      "position": { "x": 0.08, "y": 0.05 },
-      "size": { "width": 50, "height": 100 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
+      "label": "lt",
+      "position": {
+        "x": 0.009218750000000001,
+        "y": 0.268125,
+        "hAnchor": "left",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 138.5,
+        "height": 55,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555"
+      },
       "binding": {
         "xInput": "LeftTrigger",
         "keyboard": "Tab"
-      }
+      },
+      "deadZone": 0
     },
     {
-      "id": "right-trigger",
-      "type": "trigger",
-      "label": "RT",
-      "position": { "x": 0.88, "y": 0.05 },
-      "size": { "width": 50, "height": 100 },
-      "style": { "fill": "#3A3A3A", "stroke": "#555555" },
+      "id": "left-bumper",
+      "type": "button",
+      "label": "lb",
+      "position": {
+        "x": 0.11828125,
+        "y": 0.225,
+        "hAnchor": "left",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 55,
+        "height": 90,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555",
+        "cornerRadius": 10
+      },
       "binding": {
-        "xInput": "RightTrigger",
-        "keyboard": "LeftMouseButton"
-      }
+        "xInput": "LeftShoulder",
+        "keyboard": "Q"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "left-stick",
+      "type": "stick",
+      "label": "ls",
+      "position": {
+        "x": 0.01,
+        "y": 0.09,
+        "hAnchor": "left",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 140,
+        "height": 140,
+        "radius": 70
+      },
+      "binding": {
+        "xInput": "LeftThumb",
+        "keyboardDirectional": {
+          "up": "W",
+          "down": "S",
+          "left": "A",
+          "right": "D"
+        }
+      },
+      "deadZone": 0.15
     },
     {
       "id": "dpad",
       "type": "dPad",
-      "label": "D-Pad",
-      "position": { "x": 0.22, "y": 0.68 },
-      "size": { "width": 120, "height": 120 },
+      "label": "d-pad",
+      "position": {
+        "x": 0.10171875,
+        "y": 0.01125,
+        "hAnchor": "left",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 120,
+        "height": 120,
+        "radius": 0
+      },
       "binding": {
         "xInput": "DPad",
-        "keyboardDirectional": { "up": "Up", "down": "Down", "left": "Left", "right": "Right" }
-      }
+        "keyboardDirectional": {
+          "up": "Up",
+          "down": "Down",
+          "left": "Left",
+          "right": "Right"
+        }
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "right-trigger",
+      "type": "trigger",
+      "label": "rt",
+      "position": {
+        "x": 0.01,
+        "y": 0.27,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 138,
+        "height": 55,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555"
+      },
+      "binding": {
+        "xInput": "RightTrigger",
+        "keyboard": "LeftMouseButton"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "right-bumper",
+      "type": "button",
+      "label": "rb",
+      "position": {
+        "x": 0.11828125000000007,
+        "y": 0.228125,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 55,
+        "height": 90,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#3A3A3A",
+        "stroke": "#555555",
+        "cornerRadius": 10
+      },
+      "binding": {
+        "xInput": "RightShoulder",
+        "keyboard": "P"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "y-button",
+      "type": "button",
+      "label": "y",
+      "position": {
+        "x": 0.036171875000000006,
+        "y": 0.198125,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 56,
+        "height": 56,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#FDB813",
+        "stroke": "#D69E10"
+      },
+      "binding": {
+        "xInput": "Y",
+        "keyboard": "R"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "x-button",
+      "type": "button",
+      "label": "x",
+      "position": {
+        "x": 0.06678125,
+        "y": 0.14625,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 56,
+        "height": 56,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#0078D7",
+        "stroke": "#005A9E"
+      },
+      "binding": {
+        "xInput": "X",
+        "keyboard": "E"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "b-button",
+      "type": "button",
+      "label": "b",
+      "position": {
+        "x": 0.0055625,
+        "y": 0.145625,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 56,
+        "height": 56,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#E81123",
+        "stroke": "#C50F1F"
+      },
+      "binding": {
+        "xInput": "B",
+        "keyboard": "Escape"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "a-button",
+      "type": "button",
+      "label": "a",
+      "position": {
+        "x": 0.03578125,
+        "y": 0.093125,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 56,
+        "height": 56,
+        "radius": 0
+      },
+      "style": {
+        "fill": "#107C10",
+        "stroke": "#0E6B0E"
+      },
+      "binding": {
+        "xInput": "A",
+        "keyboard": "Space"
+      },
+      "deadZone": 0
+    },
+    {
+      "id": "right-stick",
+      "type": "stick",
+      "label": "rs",
+      "position": {
+        "x": 0.08984375,
+        "y": 0.01125,
+        "hAnchor": "right",
+        "vAnchor": "bottom"
+      },
+      "size": {
+        "width": 139.5,
+        "height": 136.5,
+        "radius": 68.25
+      },
+      "binding": {
+        "xInput": "RightThumb",
+        "keyboardDirectional": {
+          "up": "Up",
+          "down": "Down",
+          "left": "Left",
+          "right": "Right"
+        }
+      },
+      "deadZone": 0.15
     }
   ]
 }

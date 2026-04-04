@@ -6,10 +6,11 @@
         <Grid.RenderTransform>
             <ScaleTransform x:Name="PressTransform" ScaleX="1" ScaleY="1" />
         </Grid.RenderTransform>
-        <Ellipse x:Name="BackgroundEllipse"
-                 Fill="{StaticResource ControlBackgroundBrush}"
-                 Stroke="{StaticResource ControlStrokeBrush}"
-                 StrokeThickness="2" />
+        <Border x:Name="BackgroundShape"
+                Background="{StaticResource ControlBackgroundBrush}"
+                BorderBrush="{StaticResource ControlStrokeBrush}"
+                BorderThickness="2"
+                CornerRadius="999" />
         <TextBlock x:Name="LabelText"
                    Text="A"
                    HorizontalAlignment="Center"

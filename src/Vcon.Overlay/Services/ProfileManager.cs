@@ -22,6 +22,9 @@ public sealed class ProfileManager : IProfileManager
     public ControllerProfile ActiveProfile => _activeProfile;
 
     /// <inheritdoc />
+    public string ProfilesDirectory => _profilesDir;
+
+    /// <inheritdoc />
     public event EventHandler<ControllerProfile>? ActiveProfileChanged;
 
     public ProfileManager(ILogger<ProfileManager> logger)
@@ -143,6 +146,24 @@ public sealed class ProfileManager : IProfileManager
     }
 
     /// <inheritdoc />
+    public async Task<ControllerProfile> CloneProfileAsync(string sourceId, string? newName = null, CancellationToken ct = default)
+    {
+        var source = await LoadProfileAsync(sourceId, ct)
+            ?? throw new InvalidOperationException($"Source profile '{sourceId}' not found.");
+
+        var json = ProfileSerializer.SerializeProfile(source);
+        var clone = ProfileSerializer.DeserializeProfile(json)
+            ?? throw new InvalidOperationException("Failed to deep-copy profile during clone.");
+
+        clone.Id = GenerateUniqueId(sourceId);
+        clone.Name = newName ?? $"{source.Name} (copy)";
+
+        await SaveProfileAsync(clone, ct);
+        _logger.LogInformation("Cloned profile '{SourceId}' -> '{CloneId}'", sourceId, clone.Id);
+        return clone;
+    }
+
+    /// <inheritdoc />
     public async Task SwitchProfileAsync(string profileId, CancellationToken ct = default)
     {
         var profile = await LoadProfileAsync(profileId, ct);
@@ -155,6 +176,20 @@ public sealed class ProfileManager : IProfileManager
 
         _activeProfile = profile;
         ActiveProfileChanged?.Invoke(this, profile);
+    }
+
+    private string GenerateUniqueId(string baseId)
+    {
+        var candidate = $"{baseId}-copy";
+        var suffix = 2;
+
+        while (File.Exists(GetProfilePath(candidate)))
+        {
+            candidate = $"{baseId}-copy-{suffix}";
+            suffix++;
+        }
+
+        return candidate;
     }
 
     private void EnsureProfileDirectory()

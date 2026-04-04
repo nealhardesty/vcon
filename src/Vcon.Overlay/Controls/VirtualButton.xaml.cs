@@ -46,6 +46,12 @@ public partial class VirtualButton : System.Windows.Controls.UserControl
         InitializeComponent();
     }
 
+    /// <summary>Sets the corner radius of the background shape.</summary>
+    public void SetCornerRadius(double radius)
+    {
+        BackgroundShape.CornerRadius = new CornerRadius(radius);
+    }
+
     /// <summary>Sets the fill brush from a hex color string.</summary>
     public void SetFillFromHex(string? hex)
     {
@@ -54,11 +60,11 @@ public partial class VirtualButton : System.Windows.Controls.UserControl
 
         try
         {
-            BackgroundEllipse.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            BackgroundShape.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
         }
         catch (FormatException)
         {
-            // Invalid hex — keep default
+            // Invalid hex -- keep default
         }
     }
 
@@ -70,11 +76,11 @@ public partial class VirtualButton : System.Windows.Controls.UserControl
 
         try
         {
-            BackgroundEllipse.Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            BackgroundShape.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
         }
         catch (FormatException)
         {
-            // Invalid hex — keep default
+            // Invalid hex -- keep default
         }
     }
 

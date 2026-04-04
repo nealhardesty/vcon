@@ -6,7 +6,7 @@ CONFIG := Release
 
 .DEFAULT_GOAL := build
 
-.PHONY: build test run clean lint fmt restore help publish version install-vigembus
+.PHONY: build test run clean clean-profiles lint fmt restore help publish version install-vigembus
 
 build:
 	dotnet build $(SLN) -c $(CONFIG)
@@ -23,6 +23,14 @@ ifeq ($(OS),Windows_NT)
 	powershell -NoProfile -Command "Get-ChildItem -Path src,tests -Recurse -Directory -ErrorAction SilentlyContinue | Where-Object { $$_.Name -in 'bin','obj' } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue"
 else
 	find src tests -type d \( -name bin -o -name obj \) -exec rm -rf {} +
+endif
+
+clean-profiles:
+	@echo Removing user profiles from %APPDATA%/vcon/profiles ...
+ifeq ($(OS),Windows_NT)
+	powershell -NoProfile -Command "$$dir = Join-Path $$env:APPDATA 'vcon/profiles'; if (Test-Path $$dir) { Remove-Item $$dir -Recurse -Force; Write-Host 'Removed:' $$dir } else { Write-Host 'Nothing to remove - directory does not exist.' }"
+else
+	@rm -rfv "$${HOME}/.config/vcon/profiles" 2>/dev/null || echo "Nothing to remove."
 endif
 
 lint:
@@ -66,6 +74,7 @@ help:
 	@echo   test             - dotnet test $(SLN) -c $(CONFIG) --no-build
 	@echo   run              - dotnet run --project $(OVERLAY)
 	@echo   clean            - dotnet clean $(SLN); remove src/**/bin and src/**/obj
+	@echo   clean-profiles   - remove user profiles from %%APPDATA%%/vcon/profiles
 	@echo   lint             - dotnet format $(SLN) --verify-no-changes
 	@echo   fmt              - dotnet format $(SLN)
 	@echo   restore          - dotnet restore $(SLN)
