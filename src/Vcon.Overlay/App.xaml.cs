@@ -55,8 +55,7 @@ public partial class App : Application
             _serviceProvider?.GetService<TrayIconService>()?.Dispose();
             _serviceProvider?.GetService<GlobalHotkeyService>()?.Dispose();
 
-            if (_serviceProvider?.GetService<IInputEmulator>() is IDisposable emulator)
-                emulator.Dispose();
+            _serviceProvider?.GetService<OverlayViewModel>()?.DisconnectEmulator();
 
             _serviceProvider?.Dispose();
         }
@@ -178,6 +177,29 @@ public partial class App : Application
                 hotkeyService.CycleProfileRequested += (_, _) => _ = viewModel.CycleProfileAsync();
 
                 tray.Initialize(viewModel);
+
+                if (viewModel.EmulatorStatus == EmulatorConnectionStatus.DriverUnavailable)
+                {
+                    System.Windows.MessageBox.Show(
+                        "The ViGEmBus driver is not installed.\n\n"
+                        + "Xbox 360 controller emulation requires this driver. "
+                        + "vcon will continue in keyboard-only mode until it is installed.\n\n"
+                        + "To install, right-click the vcon tray icon and select\n"
+                        + "\"Install ViGEmBus Driver...\"",
+                        "vcon — ViGEmBus Driver Required",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+                else if (viewModel.EmulatorStatus == EmulatorConnectionStatus.Failed)
+                {
+                    System.Windows.MessageBox.Show(
+                        "Failed to connect the virtual Xbox 360 controller.\n\n"
+                        + "The ViGEmBus driver appears to be installed but the connection failed. "
+                        + "Check the log files at %APPDATA%\\vcon\\logs\\ for details.",
+                        "vcon — Controller Connection Failed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
             });
 
             logger.LogInformation("vcon started with profile '{ProfileName}'", profile.Name);

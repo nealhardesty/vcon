@@ -20,4 +20,9 @@
     <ProjectReference Include="..\Vcon.Core\Vcon.Core.csproj" />
     <ProjectReference Include="..\Vcon.Input\Vcon.Input.csproj" />
   </ItemGroup>
+
+  <!-- Seed %APPDATA%/vcon/profiles/ on first run (ProfileManager copies from BaseDirectory/profiles). -->
+  <ItemGroup>
+    <None Include="..\..\profiles\**\*.json" Link="profiles\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

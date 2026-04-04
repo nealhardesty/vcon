@@ -6,6 +6,22 @@ using Vcon.Input;
 
 namespace Vcon.Overlay.ViewModels;
 
+/// <summary>Status of the input emulator connection.</summary>
+public enum EmulatorConnectionStatus
+{
+    /// <summary>No connection attempt has been made yet.</summary>
+    None,
+
+    /// <summary>The emulator is connected and operational.</summary>
+    Connected,
+
+    /// <summary>The required driver (e.g. ViGEmBus) is not installed.</summary>
+    DriverUnavailable,
+
+    /// <summary>The connection attempt threw an exception.</summary>
+    Failed,
+}
+
 /// <summary>
 /// Main ViewModel managing controller state, input dispatch, visibility, and edit mode.
 /// </summary>
@@ -56,6 +72,9 @@ public partial class OverlayViewModel : ObservableObject
 
     [ObservableProperty]
     private double _opacity = 0.7;
+
+    [ObservableProperty]
+    private EmulatorConnectionStatus _emulatorStatus;
 
     public OverlayViewModel(
         IProfileManager profileManager,
@@ -186,6 +205,27 @@ public partial class OverlayViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Changes the active profile's input mode, persists it, and reconnects the emulator.
+    /// </summary>
+    public async Task SwitchInputModeAsync(InputMode mode)
+    {
+        if (ActiveProfile is null || ActiveProfile.Mode == mode)
+            return;
+
+        try
+        {
+            ActiveProfile.Mode = mode;
+            await _profileManager.SaveProfileAsync(ActiveProfile);
+            ConnectEmulator();
+            _logger.LogInformation("Switched input mode to {Mode}", mode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to switch input mode to {Mode}", mode);
+        }
+    }
+
+    /// <summary>
     /// Connects the input emulator for the active profile's mode.
     /// </summary>
     public void ConnectEmulator()
@@ -203,16 +243,19 @@ public partial class OverlayViewModel : ObservableObject
             {
                 _logger.LogWarning("Emulator for mode {Mode} is not available", ActiveProfile.Mode);
                 _emulator = null;
+                EmulatorStatus = EmulatorConnectionStatus.DriverUnavailable;
                 return;
             }
 
             _emulator.Connect();
+            EmulatorStatus = EmulatorConnectionStatus.Connected;
             _logger.LogInformation("Connected emulator for mode {Mode}", ActiveProfile.Mode);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to connect emulator for mode {Mode}", ActiveProfile?.Mode);
             _emulator = null;
+            EmulatorStatus = EmulatorConnectionStatus.Failed;
         }
     }
 

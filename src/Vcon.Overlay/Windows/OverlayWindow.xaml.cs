@@ -23,7 +23,17 @@ public partial class OverlayWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = _viewModel;
+
+        SyncVisibilityFromViewModel();
+        _viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(OverlayViewModel.IsVisible) || e.PropertyName is null)
+                SyncVisibilityFromViewModel();
+        };
     }
+
+    private void SyncVisibilityFromViewModel()
+        => Visibility = _viewModel.IsVisible ? Visibility.Visible : Visibility.Collapsed;
 
     protected override void OnSourceInitialized(EventArgs e)
     {
