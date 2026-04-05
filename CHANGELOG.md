@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Custom application and tray icon**: Replaced the default Windows application icon with the vcon controller logo (`assets/vcon_icon2.png`). The icon is used both as the .exe application icon (multi-size ICO: 16, 32, 48, 256) and the system tray icon, with a fallback to `SystemIcons.Application` if loading fails.
+- **README logo**: Added the vcon icon to the top of `README.md`.
 - **Edit mode with drag-to-move and resize**: Controls are now freely movable and resizable in edit mode. Each control gets a cyan edit overlay with a resize grip at the bottom-right corner. Drag to reposition, drag the grip to resize. Anchor-aware coordinate conversion ensures positions remain correct regardless of horizontal/vertical anchoring.
 - **Profile snapshot / save / discard**: Entering edit mode takes a JSON snapshot of the profile. The user can explicitly save changes or discard to restore the original layout, via the tray menu Profiles submenu.
 - **Locked default profile with auto-clone**: The "xbox-standard" profile is locked from in-app editing. Attempting to enter edit mode on it automatically clones to "Xbox Standard (copy)", switches to the clone, and enters edit mode on the copy.

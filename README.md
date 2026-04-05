@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/vcon_icon2.png" alt="vcon logo" width="128" />
+</p>
+
 # vcon — Windows On-Screen Virtual Controller Overlay
 
 **vcon** is a Windows desktop application that renders a translucent, always-on-top virtual game controller overlay. Users interact with on-screen buttons, analog sticks, triggers, and a D-pad via touch or mouse to emulate either an Xbox 360 controller (via ViGEmBus) or direct keyboard/mouse input (via Win32 `SendInput`).
