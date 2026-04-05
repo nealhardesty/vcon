@@ -28,9 +28,15 @@ Many Windows games — especially older titles and PC-exclusive applications —
 - Xbox 360 controller emulation via ViGEmBus
 - Direct keyboard/mouse injection for games that don't recognize controllers
 - Full customization of control layout, size, position, opacity, and key bindings
+- Anchor-based positioning (controls anchored to screen edges) for resolution independence
+- Taskbar-aware layout — controls offset above the Windows taskbar
 - Switchable profiles for different games and use cases
-- In-app visual layout editor
-- System tray integration and global hotkeys
+- In-app visual layout editor with drag-to-move and resize handles
+- Profile snapshot, save, and discard workflow
+- Locked default profile with automatic cloning on edit
+- Profile cloning
+- System tray integration with full profile management, input mode switching, and driver installation
+- Global hotkeys
 - Clean, maintainable C# / .NET 8 codebase following .NET conventions
 
 ### Out of Scope (v1)
@@ -76,12 +82,12 @@ The overlay renders the following interactive control types:
 
 | Control | Description | Input Behavior |
 |:---|:---|:---|
-| **Button** | Circular or rectangular touch target (A, B, X, Y, LB, RB, Start, Back, Guide) | Binary press/release |
+| **Button** | Circular or rounded-rectangle touch target (A, B, X, Y, LB, RB, Start, Back, Guide) | Binary press/release. Shape controlled by `cornerRadius` in StyleInfo — omit for circle, set small value for rounded rectangle. |
 | **Analog Stick** | Circular touch zone with draggable thumb indicator | Continuous X/Y axes (−1.0 to +1.0) with configurable dead zone |
 | **Trigger** | Rectangular touch zone (LT, RT) | Binary press for v1; analog via vertical drag in future |
 | **D-Pad** | 4-directional or 8-directional pad | Discrete directional presses |
 
-The **default layout** mirrors an Xbox 360 controller: Left Stick, Right Stick, D-Pad, A/B/X/Y, LB/RB, LT/RT, Start, Back, Guide.
+The **default layout** mirrors an Xbox 360 controller: Left Stick, Right Stick, D-Pad, A/B/X/Y, LB/RB, LT/RT, Start, Back, Guide. All controls are positioned using anchor-based coordinates to remain resolution-independent and taskbar-aware.
 
 ### FR-3: Input Emulation
 
@@ -90,37 +96,44 @@ The **default layout** mirrors an Xbox 360 controller: Left Stick, Right Stick, 
 | FR-3.1 | **Xbox 360 mode**: Create a virtual Xbox 360 controller via ViGEmBus. All button, stick, and trigger inputs produce authentic XInput reports. | P0 |
 | FR-3.2 | **Keyboard/Mouse mode**: Map each virtual control to one or more keystrokes or mouse actions. Inject via Win32 `SendInput`. | P0 |
 | FR-3.3 | Input mode is per-profile (each profile declares its emulation mode) | P0 |
-| FR-3.4 | Graceful degradation: if ViGEmBus driver is not installed, disable Xbox mode and display a clear warning with install instructions | P1 |
+| FR-3.4 | Graceful degradation: if ViGEmBus driver is not installed, disable Xbox mode and display a clear warning with install instructions. Offer one-click install from tray menu. | P1 |
 | FR-3.5 | Support key modifier combinations (e.g., Ctrl+Shift+S) in keyboard bindings | P2 |
 
 ### FR-4: Profile System
 
 | ID | Requirement | Priority |
 |:---|:---|:---|
-| FR-4.1 | Profiles stored as individual JSON files in a user-writable directory | P0 |
-| FR-4.2 | Each profile defines: name, input mode, control layout (positions, sizes, styles), bindings, opacity, and scale | P0 |
-| FR-4.3 | Ship with a default "Xbox Standard" profile | P0 |
+| FR-4.1 | Profiles stored as individual JSON files in a user-writable directory (`%APPDATA%/vcon/profiles/`) | P0 |
+| FR-4.2 | Each profile defines: name, input mode, control layout (positions with anchors, sizes, styles with corner radius), bindings, opacity, and scale | P0 |
+| FR-4.3 | Ship with a default "Xbox Standard" profile (locked from in-app editing) | P0 |
 | FR-4.4 | Switch active profile via system tray context menu | P0 |
 | FR-4.5 | Switch active profile via configurable hotkey | P1 |
-| FR-4.6 | Import/export profiles as standalone JSON files | P2 |
-| FR-4.7 | Auto-switch profile based on foreground application executable name | P2 |
+| FR-4.6 | Clone any profile via tray menu or programmatically | P1 |
+| FR-4.7 | Open profiles directory in Windows Explorer from tray menu | P1 |
+| FR-4.8 | Import/export profiles as standalone JSON files | P2 |
+| FR-4.9 | Auto-switch profile based on foreground application executable name | P2 |
 
 ### FR-5: Layout Editor
 
-| ID | Requirement | Priority |
-|:---|:---|:---|
-| FR-5.1 | Toggle into "Edit Mode" via hotkey or tray menu | P1 |
-| FR-5.2 | In edit mode: drag controls to reposition; resize via handles | P1 |
-| FR-5.3 | In edit mode: input emulation is disabled (prevents accidental game inputs) | P1 |
-| FR-5.4 | In edit mode: optional visual grid and alignment guides | P2 |
-| FR-5.5 | Changes auto-save to the active profile on exiting edit mode | P1 |
-| FR-5.6 | Add or remove controls from the layout | P2 |
+| ID | Requirement | Priority | Status |
+|:---|:---|:---|:---|
+| FR-5.1 | Toggle into "Edit Mode" via hotkey (F10) or tray menu | P1 | Implemented |
+| FR-5.2 | In edit mode: drag controls to reposition; resize via bottom-right grip handle | P1 | Implemented |
+| FR-5.3 | In edit mode: input emulation is disabled (prevents accidental game inputs) | P1 | Implemented |
+| FR-5.4 | In edit mode: visual indicators — cyan border overlays and resize grips on every control | P1 | Implemented |
+| FR-5.5 | Explicit save/discard via tray menu Profiles submenu (not auto-save) | P1 | Implemented |
+| FR-5.6 | JSON snapshot taken on entering edit mode; discard restores from snapshot | P1 | Implemented |
+| FR-5.7 | Default "xbox-standard" profile is locked; entering edit mode auto-clones it | P1 | Implemented |
+| FR-5.8 | Anchor-aware drag: coordinate conversion respects each control's horizontal and vertical anchor | P1 | Implemented |
+| FR-5.9 | Stick resize updates `Radius` as well as `Width`/`Height` | P1 | Implemented |
+| FR-5.10 | In edit mode: optional visual grid and alignment guides | P2 | Not yet |
+| FR-5.11 | Add or remove controls from the layout | P2 | Not yet |
 
 ### FR-6: System Tray & Application Lifecycle
 
 | ID | Requirement | Priority |
 |:---|:---|:---|
-| FR-6.1 | System tray icon with context menu: Show/Hide, Edit Mode, Profiles submenu, Settings, Exit | P0 |
+| FR-6.1 | System tray icon with context menu: Show/Hide, Edit Mode, Input Mode, Profiles submenu (with save/discard/clone/open-dir), Install ViGEmBus, Game Controllers, Exit | P0 |
 | FR-6.2 | Minimize to tray; no taskbar presence when overlay is active | P1 |
 | FR-6.3 | Optional: launch at Windows startup | P2 |
 | FR-6.4 | Single-instance enforcement via named mutex | P1 |
@@ -186,16 +199,22 @@ vcon/
 │   ├── Vcon.Core/                          # Shared abstractions, models, configuration
 │   │   ├── Abstractions/
 │   │   │   ├── IInputEmulator.cs           # Input emulation contract
-│   │   │   ├── IProfileManager.cs          # Profile CRUD and switching
+│   │   │   ├── IProfileManager.cs          # Profile CRUD, switching, cloning
 │   │   │   └── IControllerStateObserver.cs # Optional observation hook
 │   │   ├── Models/
 │   │   │   ├── ControllerState.cs          # Full controller state snapshot
 │   │   │   ├── ControllerProfile.cs        # Serializable profile definition
 │   │   │   ├── ControlDefinition.cs        # Single control's layout and binding
+│   │   │   ├── PositionInfo.cs             # Anchor-relative normalized position
+│   │   │   ├── SizeInfo.cs                 # Control dimensions (width, height, radius)
+│   │   │   ├── StyleInfo.cs                # Fill, stroke, corner radius
+│   │   │   ├── HorizontalAnchor.cs         # Left / Right enum
+│   │   │   ├── VerticalAnchor.cs           # Top / Bottom enum
 │   │   │   ├── InputBinding.cs             # Maps a control to XInput button or key
+│   │   │   ├── DirectionalBinding.cs       # WASD-style bindings for sticks/D-pad
 │   │   │   └── AppSettings.cs              # Global application settings
 │   │   ├── Configuration/
-│   │   │   └── ProfileSerializer.cs        # JSON round-trip for profiles
+│   │   │   └── ProfileSerializer.cs        # JSON round-trip for profiles and settings
 │   │   └── Vcon.Core.csproj
 │   │
 │   ├── Vcon.Input/                         # Input emulation implementations
@@ -213,6 +232,7 @@ vcon/
 │   │   ├── App.xaml / App.xaml.cs          # Startup, DI composition, single-instance
 │   │   ├── Windows/
 │   │   │   └── OverlayWindow.xaml(.cs)     # Transparent, topmost, no-activate window
+│   │   │                                   # + edit mode decorators, drag/resize handlers
 │   │   ├── Controls/
 │   │   │   ├── VirtualButton.xaml(.cs)     # Face buttons, bumpers, start/back/guide
 │   │   │   ├── VirtualStick.xaml(.cs)      # Analog stick with touch-drag tracking
@@ -220,12 +240,13 @@ vcon/
 │   │   │   └── VirtualDPad.xaml(.cs)       # Directional pad
 │   │   ├── ViewModels/
 │   │   │   ├── OverlayViewModel.cs         # Main state management and input dispatch
-│   │   │   └── EditorViewModel.cs          # Layout editing logic
+│   │   │   └── EditorViewModel.cs          # Layout editing: snapshot, save, discard,
+│   │   │                                   # auto-clone for locked profiles
 │   │   ├── Services/
 │   │   │   ├── OverlayWindowService.cs     # Win32 window-style interop
 │   │   │   ├── ProfileManager.cs           # IProfileManager file-based implementation
 │   │   │   ├── GlobalHotkeyService.cs      # RegisterHotKey-based global hotkeys
-│   │   │   └── TrayIconService.cs          # System tray NotifyIcon management
+│   │   │   └── TrayIconService.cs          # System tray NotifyIcon + context menu
 │   │   ├── Resources/
 │   │   │   ├── Styles/                     # Control templates, brushes, colors
 │   │   │   └── Icons/                      # Application and tray icons
@@ -242,6 +263,7 @@ vcon/
 │   └── xbox-standard.json
 │
 ├── Directory.Build.props                   # Centralized version and shared build properties
+├── Directory.Packages.props                # Centralized NuGet versions
 ├── Makefile                                # build, test, run, clean, lint, fmt, help, etc.
 ├── DESIGN.md
 ├── README.md
@@ -259,16 +281,18 @@ vcon/
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐ │
 │  │OverlayWindow │  │ TrayIcon     │  │ GlobalHotkey       │ │
 │  │  + Controls  │  │   Service    │  │   Service          │ │
+│  │  + EditMode  │  │              │  │                    │ │
 │  └──────┬───────┘  └──────┬───────┘  └────────┬───────────┘ │
 │         │                 │                    │             │
 │  ┌──────▼─────────────────▼────────────────────▼──────────┐  │
-│  │                 OverlayViewModel                       │  │
-│  │  (controller state, input dispatch, edit mode toggle)  │  │
+│  │          OverlayViewModel + EditorViewModel            │  │
+│  │  (controller state, input dispatch, edit mode,         │  │
+│  │   snapshot/save/discard, profile locking/cloning)      │  │
 │  └───────────────────────┬────────────────────────────────┘  │
 │                          │                                   │
 │  ┌───────────────────────▼────────────────────────────────┐  │
 │  │                 ProfileManager                         │  │
-│  │  (load / save / switch profiles, file I/O)             │  │
+│  │  (load / save / switch / clone profiles, file I/O)     │  │
 │  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────┬───────────────────────────────┘
                                │ depends on
@@ -289,7 +313,9 @@ vcon/
 │  │ IInputEmulator     │    │ ControllerState               │ │
 │  │ IProfileManager    │    │ ControllerProfile             │ │
 │  │                    │    │ ControlDefinition             │ │
-│  │                    │    │ InputBinding / AppSettings     │ │
+│  │                    │    │ PositionInfo (with anchors)   │ │
+│  │                    │    │ SizeInfo / StyleInfo          │ │
+│  │                    │    │ InputBinding / AppSettings    │ │
 │  └────────────────────┘    └───────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────┘
               │                               │
@@ -312,40 +338,17 @@ public interface IInputEmulator : IDisposable
 ```
 
 ```csharp
-public sealed class ControllerState
+public interface IProfileManager
 {
-    // Face buttons
-    public bool A { get; set; }
-    public bool B { get; set; }
-    public bool X { get; set; }
-    public bool Y { get; set; }
-
-    // Shoulder buttons
-    public bool LeftBumper { get; set; }
-    public bool RightBumper { get; set; }
-
-    // Triggers (0.0 – 1.0)
-    public float LeftTrigger { get; set; }
-    public float RightTrigger { get; set; }
-
-    // Analog sticks (−1.0 to +1.0 per axis)
-    public float LeftStickX { get; set; }
-    public float LeftStickY { get; set; }
-    public float RightStickX { get; set; }
-    public float RightStickY { get; set; }
-    public bool LeftStickClick { get; set; }
-    public bool RightStickClick { get; set; }
-
-    // D-Pad
-    public bool DPadUp { get; set; }
-    public bool DPadDown { get; set; }
-    public bool DPadLeft { get; set; }
-    public bool DPadRight { get; set; }
-
-    // Meta
-    public bool Start { get; set; }
-    public bool Back { get; set; }
-    public bool Guide { get; set; }
+    Task<IReadOnlyList<ControllerProfile>> GetAllProfilesAsync(CancellationToken ct = default);
+    Task<ControllerProfile?> LoadProfileAsync(string profileId, CancellationToken ct = default);
+    Task SaveProfileAsync(ControllerProfile profile, CancellationToken ct = default);
+    Task<bool> DeleteProfileAsync(string profileId, CancellationToken ct = default);
+    Task<ControllerProfile> CloneProfileAsync(string sourceId, string? newName = null, CancellationToken ct = default);
+    ControllerProfile ActiveProfile { get; }
+    string ProfilesDirectory { get; }
+    Task SwitchProfileAsync(string profileId, CancellationToken ct = default);
+    event EventHandler<ControllerProfile>? ActiveProfileChanged;
 }
 ```
 
@@ -369,9 +372,9 @@ public sealed class ControlDefinition
     public string Id { get; set; }
     public ControlType Type { get; set; }     // Button, Stick, Trigger, DPad
     public string Label { get; set; }
-    public PositionInfo Position { get; set; } // Normalized 0.0–1.0 screen coordinates
+    public PositionInfo Position { get; set; } // Anchor-relative normalized coordinates
     public SizeInfo Size { get; set; }         // Device-independent pixels at 1920×1080 reference
-    public StyleInfo Style { get; set; }       // Fill, stroke, etc.
+    public StyleInfo? Style { get; set; }      // Fill, stroke, corner radius
     public InputBinding Binding { get; set; }
     public float DeadZone { get; set; }        // Sticks only
 }
@@ -379,7 +382,123 @@ public sealed class ControlDefinition
 public enum ControlType { Button, Stick, Trigger, DPad }
 ```
 
-### 7.5 Data Flow: Touch Event → Game Input
+```csharp
+public sealed class PositionInfo
+{
+    public double X { get; set; }               // Normalized offset (0.0–1.0) from anchor edge
+    public double Y { get; set; }               // Normalized offset (0.0–1.0) from anchor edge
+    public HorizontalAnchor HAnchor { get; set; } = HorizontalAnchor.Left;
+    public VerticalAnchor VAnchor { get; set; }   = VerticalAnchor.Top;
+}
+
+public enum HorizontalAnchor { Left, Right }
+public enum VerticalAnchor { Top, Bottom }
+```
+
+```csharp
+public sealed class StyleInfo
+{
+    public string? Fill { get; set; }           // Hex color (e.g. "#107C10")
+    public string? Stroke { get; set; }         // Hex color
+    public double? CornerRadius { get; set; }   // Reference pixels; null → auto-circle
+}
+```
+
+### 7.5 Anchor-Based Positioning System
+
+Control positions use **normalized coordinates (0.0–1.0)** measured from a configurable screen edge. This replaces the original top-left-only origin, enabling layouts that remain correct across different screen resolutions and taskbar configurations.
+
+**How it works at runtime** (`OverlayWindow.PositionControl`):
+
+1. The screen dimensions and taskbar insets are computed from `SystemParameters.PrimaryScreenWidth/Height` and `SystemParameters.WorkArea`.
+2. For each control, the anchor determines which Canvas attached property is set:
+   - `HAnchor.Left` → `Canvas.SetLeft(element, pos.X * screenWidth + taskbarInsets.Left)`
+   - `HAnchor.Right` → `Canvas.SetRight(element, pos.X * screenWidth + taskbarInsets.Right)`
+   - `VAnchor.Top` → `Canvas.SetTop(element, pos.Y * screenHeight + taskbarInsets.Top)`
+   - `VAnchor.Bottom` → `Canvas.SetBottom(element, pos.Y * screenHeight + taskbarInsets.Bottom)`
+
+This ensures bottom-anchored controls automatically sit above the Windows taskbar, and right-anchored controls stay at the right edge regardless of screen width.
+
+### 7.6 Edit Mode Architecture
+
+Edit mode allows users to visually drag and resize controls, then explicitly save or discard changes.
+
+**Key classes:**
+
+- **`EditorViewModel`**: Manages the editing lifecycle — snapshot, save, discard, locked-profile detection, auto-clone.
+- **`OverlayViewModel`**: Delegates `ToggleEditMode()` to `EditorViewModel.StartEditingAsync()`. Syncs `IsEditMode` from `EditorViewModel.IsEditing` via `PropertyChanged`.
+- **`OverlayWindow`**: Creates visual edit overlays (cyan borders + resize grips) and handles drag/resize mouse events with anchor-aware coordinate conversion.
+
+**Edit mode flow:**
+
+```
+User presses F10 (or tray → Edit Mode)
+    │
+    ▼
+OverlayViewModel.ToggleEditMode()
+    │
+    ▼
+EditorViewModel.StartEditingAsync()
+    ├── Is profile "xbox-standard"?
+    │   ├── Yes: CloneProfileAsync → SwitchProfileAsync → layout reloads
+    │   └── No: continue
+    ├── Snapshot active profile as JSON
+    └── IsEditing = true → OverlayWindow.EnterEditMode()
+            │
+            ├── For each control: create edit overlay (Grid with cyan Border + resize grip)
+            ├── Attach drag handlers to overlays
+            └── Attach resize handlers to grip elements
+
+User drags a control
+    │
+    ▼
+OverlayWindow: MouseMove updates Canvas.Left/Right/Top/Bottom for both element and overlay
+    │
+    ▼
+OverlayWindow: MouseUp converts canvas position back to normalized anchor-relative coordinates
+    │
+    ▼
+EditorViewModel.MoveControl(id, normX, normY) — mutates ControlDefinition.Position in memory
+
+User clicks "Save Profile" in tray
+    │
+    ▼
+EditorViewModel.SaveAndStopAsync()
+    ├── ProfileManager.SaveProfileAsync(profile) — writes JSON to disk
+    ├── Clear snapshot
+    └── IsEditing = false → OverlayWindow.ExitEditMode() → remove overlays, reload layout
+
+User clicks "Discard Changes" in tray
+    │
+    ▼
+EditorViewModel.DiscardAndStopAsync()
+    ├── Deserialize snapshot → restore Controls, Opacity, Scale on active profile
+    ├── SaveProfileAsync (persist the restored state)
+    ├── Fire LayoutReloadRequested → OverlayWindow reloads layout
+    ├── Clear snapshot
+    └── IsEditing = false → OverlayWindow.ExitEditMode()
+```
+
+**Coordinate conversion (drag):**
+- Left-anchored: `normX = (Canvas.GetLeft(element) - taskbarInsets.Left) / screenWidth`
+- Right-anchored: `normX = (Canvas.GetRight(element) - taskbarInsets.Right) / screenWidth`
+- Top-anchored: `normY = (Canvas.GetTop(element) - taskbarInsets.Top) / screenHeight`
+- Bottom-anchored: `normY = (Canvas.GetBottom(element) - taskbarInsets.Bottom) / screenHeight`
+
+**Resize conversion:** Element pixel dimensions are divided by the profile `Scale` factor to produce reference-pixel values stored in `SizeInfo`. For stick controls, `SizeInfo.Radius` is also updated (`min(width, height) / 2`).
+
+**Locked profile behavior:** `EditorViewModel.IsProfileLocked` returns `true` when `profile.Id == "xbox-standard"` (case-insensitive). If locked, `StartEditingAsync` calls `CloneProfileAsync` which generates a unique ID (`xbox-standard-copy`, `xbox-standard-copy-2`, etc.) and switches to the clone before taking the snapshot.
+
+### 7.7 Profile Cloning
+
+`ProfileManager.CloneProfileAsync` performs a deep copy by serializing the source profile to JSON and deserializing it back. The clone gets a unique ID generated by `GenerateUniqueId`:
+
+1. Try `{sourceId}-copy`
+2. If that file exists, try `{sourceId}-copy-2`, `{sourceId}-copy-3`, etc.
+3. Set `Name` to `"{sourceName} (copy)"` (or the caller-provided `newName`)
+4. Save clone to disk
+
+### 7.8 Data Flow: Touch Event → Game Input
 
 ```
 User Touch / Mouse Event (WPF Dispatcher Thread)
@@ -387,10 +506,12 @@ User Touch / Mouse Event (WPF Dispatcher Thread)
         ▼
   VirtualButton / VirtualStick / VirtualTrigger / VirtualDPad
         │  Control interprets gesture: binary press, axis position, or direction
+        │  (In edit mode: input events are NOT fired — overlays intercept mouse)
         │
         ▼
-  OverlayViewModel.UpdateControllerState(controlId, value)
+  OverlayViewModel.UpdateButton / UpdateStick / UpdateTrigger / UpdateDPad
         │  Mutates the shared ControllerState model
+        │  (Suppressed when IsEditMode is true)
         │
         ▼
   IInputEmulator.SubmitState(controllerState)
@@ -413,16 +534,16 @@ User Touch / Mouse Event (WPF Dispatcher Thread)
 
 **Key design choice**: The entire hot path runs synchronously on the WPF dispatcher thread. Both `ViGEmClient.SubmitReport()` and `SendInput()` complete in under 1 ms, so dispatching to a background thread would add latency and synchronization cost without benefit. If profiling reveals jank, the submission step can be moved to a dedicated thread with a lock-free single-producer/single-consumer queue.
 
-### 7.6 Threading Model
+### 7.9 Threading Model
 
 | Thread | Responsibility |
 |:---|:---|
-| **WPF Dispatcher (UI)** | Touch/mouse event handling, UI rendering, control state updates, emulator submission |
+| **WPF Dispatcher (UI)** | Touch/mouse event handling, UI rendering, control state updates, emulator submission, edit mode drag/resize |
 | **Global Hotkey Listener** | Runs on UI thread via `RegisterHotKey` + window message pump (`HwndSource`) |
-| **Profile I/O** | Async file reads/writes on the thread pool; results marshaled back to dispatcher |
+| **Profile I/O** | Async file reads/writes on the thread pool; results marshaled back to dispatcher via `Dispatcher.InvokeAsync` |
 | **Logging** | Serilog async sink writes to file on a background thread |
 
-### 7.7 Overlay Window Implementation
+### 7.10 Overlay Window Implementation
 
 The overlay uses specific Win32 extended window styles applied via `SetWindowLongPtr` in the window's `SourceInitialized` handler:
 
@@ -445,15 +566,45 @@ The overlay uses specific Win32 extended window styles applied via `SetWindowLon
         ShowInTaskbar="False"
         WindowState="Maximized">
     <Canvas x:Name="ControlCanvas">
-        <!-- Controls positioned absolutely via Canvas.Left / Canvas.Top -->
-        <!-- Positions computed from normalized profile coordinates × actual screen size -->
+        <!-- Controls positioned via Canvas.Left/Right/Top/Bottom based on anchors -->
+        <!-- In edit mode: overlay Grid elements with cyan borders + resize grips -->
     </Canvas>
 </Window>
 ```
 
-**Multi-touch**: WPF delivers distinct `TouchDown`, `TouchMove`, and `TouchUp` events per touch point, each with a unique `TouchDevice.Id`. Controls handle their own touch device independently, enabling simultaneous button presses. Windows touch gestures (edge swipes, pinch) should be suppressed for the overlay window via `SetGestureConfig` to prevent interference.
+**Multi-touch**: WPF delivers distinct `TouchDown`, `TouchMove`, and `TouchUp` events per touch point, each with a unique `TouchDevice.Id`. Controls handle their own touch device independently, enabling simultaneous button presses.
 
-### 7.8 Configuration Schema
+**Button shapes**: `VirtualButton` uses a WPF `Border` element (not `Ellipse`) to support both circular and rounded-rectangle shapes. The `CornerRadius` is set from `StyleInfo.CornerRadius` (scaled by the profile scale factor), or defaults to `min(width, height) / 2` to produce a circle for square buttons.
+
+### 7.11 Tray Menu Structure
+
+```
+vcon — Virtual Controller Overlay
+├── Show/Hide Overlay
+├── Edit Mode
+├── ──────────
+├── Xbox Controller Mode     [✓ when active]
+├── Keyboard Mode            [✓ when active]
+├── ──────────
+├── Profiles >
+│   ├── Xbox Standard            [✓ when active]
+│   ├── Xbox Standard (copy)     [✓ when active]
+│   ├── ──────────
+│   ├── Save Profile             [visible only in edit mode]
+│   ├── Discard Changes          [visible only in edit mode]
+│   ├── ──────────
+│   ├── Clone Active Profile...
+│   └── Open Profiles Directory
+├── Install ViGEmBus Driver...   [visible only when driver missing]
+├── ──────────
+├── Game Controllers...
+├── ──────────
+└── Exit
+```
+
+The Profiles submenu is rebuilt dynamically each time the context menu opens (`menu.Opening` event) to reflect the current profile list and edit mode state.
+
+### 7.12 Configuration Schema
 
 **Global settings** stored at `%APPDATA%/vcon/settings.json`:
 
@@ -477,63 +628,49 @@ The overlay uses specific Win32 extended window styles applied via `SetWindowLon
 {
   "id": "xbox-standard",
   "name": "Xbox Standard",
-  "mode": "XInput",
+  "mode": "xInput",
   "opacity": 0.7,
   "scale": 1.0,
   "controls": [
     {
       "id": "a-button",
-      "type": "Button",
-      "label": "A",
-      "position": { "x": 0.85, "y": 0.60 },
+      "type": "button",
+      "label": "a",
+      "position": { "x": 0.045, "y": 0.115, "hAnchor": "right", "vAnchor": "bottom" },
       "size": { "width": 56, "height": 56 },
       "style": { "fill": "#107C10", "stroke": "#0E6B0E" },
-      "binding": {
-        "xinput": "A",
-        "keyboard": "Space"
-      }
+      "binding": { "xInput": "A", "keyboard": "Space" }
     },
     {
       "id": "left-stick",
-      "type": "Stick",
-      "label": "LS",
-      "position": { "x": 0.15, "y": 0.55 },
-      "size": { "radius": 70 },
+      "type": "stick",
+      "label": "",
+      "position": { "x": 0.025, "y": 0.12, "hAnchor": "left", "vAnchor": "bottom" },
+      "size": { "width": 0, "height": 0, "radius": 70 },
       "deadZone": 0.15,
       "binding": {
-        "xinput": "LeftThumb",
-        "keyboard": { "up": "W", "down": "S", "left": "A", "right": "D" }
+        "xInput": "LeftThumb",
+        "keyboardDirectional": { "up": "W", "down": "S", "left": "A", "right": "D" }
       }
     },
     {
-      "id": "right-trigger",
-      "type": "Trigger",
-      "label": "RT",
-      "position": { "x": 0.92, "y": 0.10 },
-      "size": { "width": 50, "height": 100 },
-      "binding": {
-        "xinput": "RightTrigger",
-        "keyboard": "LeftMouseButton"
-      }
-    },
-    {
-      "id": "dpad",
-      "type": "DPad",
-      "label": "D-Pad",
-      "position": { "x": 0.10, "y": 0.75 },
-      "size": { "width": 120, "height": 120 },
-      "binding": {
-        "xinput": "DPad",
-        "keyboard": { "up": "Up", "down": "Down", "left": "Left", "right": "Right" }
-      }
+      "id": "left-bumper",
+      "type": "button",
+      "label": "lb",
+      "position": { "x": 0.05, "y": 0.19, "hAnchor": "left", "vAnchor": "bottom" },
+      "size": { "width": 50, "height": 65 },
+      "style": { "fill": "#3A3A3A", "stroke": "#555555", "cornerRadius": 10 },
+      "binding": { "xInput": "LeftShoulder", "keyboard": "Q" }
     }
   ]
 }
 ```
 
 **Design decisions on coordinates and sizing**:
-- **Positions** use normalized coordinates (0.0–1.0) relative to the screen, making layouts resolution-independent across devices.
-- **Sizes** are in device-independent pixels at a 1920×1080 reference resolution. At runtime, sizes are scaled proportionally to the actual resolution and the profile's `scale` factor.
+- **Positions** use normalized coordinates (0.0–1.0) relative to an anchor edge, making layouts resolution-independent across devices. The `hAnchor` and `vAnchor` properties determine which screen edges the offsets are measured from.
+- **Taskbar awareness**: When `vAnchor` is `bottom`, the offset is measured from the bottom of the usable work area (above the taskbar), not from the absolute screen bottom. Similarly, `taskbarInsets.Left/Right/Top` are added for other anchors.
+- **Sizes** are in device-independent pixels at a 1920×1080 reference resolution. At runtime, sizes are scaled proportionally to the profile's `scale` factor.
+- **Corner radius** in `StyleInfo` controls button shape. Omitted = auto-circle (`min(w,h)/2`). A small value like `10` creates a rounded rectangle. This is how bumpers (LB/RB) are rendered as rounded rectangles while face buttons (A/B/X/Y) remain circular.
 
 ---
 
@@ -556,7 +693,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 
 | Dependency | Purpose | Fallback if Missing |
 |:---|:---|:---|
-| **[ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases)** | Kernel-mode virtual gamepad driver | Xbox mode is disabled; keyboard mode still functions; app displays a clear warning with a link to installation instructions |
+| **[ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases)** | Kernel-mode virtual gamepad driver | Xbox mode is disabled; keyboard mode still functions; app displays a clear warning. Installable from tray menu. |
 
 ### Build Tooling
 
@@ -584,7 +721,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 
 ## 10. Development Roadmap
 
-### Phase 1: Ghost Window & Touch Proof-of-Concept
+### Phase 1: Ghost Window & Touch Proof-of-Concept ✅
 
 **Goal**: Validate the core overlay technique on real hardware.
 
@@ -597,9 +734,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 - Set up `Makefile` with `build`, `run`, `clean`, `test`, `lint`, `fmt`, `help` targets
 - Set up `Directory.Build.props` with centralized versioning
 
-**Acceptance**: A single on-screen button receives touch input while a borderless-fullscreen game runs underneath without losing focus or stuttering.
-
-### Phase 2: Xbox Controller Emulation
+### Phase 2: Xbox Controller Emulation ✅
 
 **Goal**: Prove virtual controller emulation end-to-end.
 
@@ -610,9 +745,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 - Implement `ViGEmAvailability` for runtime driver detection
 - Add graceful degradation UI when ViGEmBus is not installed
 
-**Acceptance**: Pressing the on-screen button registers as Xbox 360 controller "A" in the Game Controllers panel.
-
-### Phase 3: Full Controller Layout
+### Phase 3: Full Controller Layout ✅
 
 **Goal**: Render and wire the complete Xbox controller surface.
 
@@ -623,9 +756,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 - Apply Xbox-inspired visual styling (ABXY colors, translucent rounded controls)
 - Test multi-touch: verify 5+ simultaneous touches register correctly
 
-**Acceptance**: Full virtual Xbox 360 controller visible on screen; all 17 inputs register correctly in Game Controllers panel.
-
-### Phase 4: Keyboard/Mouse Injection Mode
+### Phase 4: Keyboard/Mouse Injection Mode ✅
 
 **Goal**: Support games that don't recognize XInput controllers.
 
@@ -635,33 +766,30 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 - Map triggers to key or mouse button presses
 - Profile schema validated to include keyboard bindings for each control
 
-**Acceptance**: Virtual buttons trigger correct keystrokes visible in Notepad; verified in at least one keyboard-only game.
-
-### Phase 5: Profiles, Persistence & System Tray
+### Phase 5: Profiles, Persistence & System Tray ✅
 
 **Goal**: User-facing configuration management and application lifecycle.
 
 - Implement `ProfileSerializer` (JSON round-trip with `System.Text.Json`)
-- Implement `ProfileManager` (load, save, list, switch, validate)
+- Implement `ProfileManager` (load, save, list, switch, clone, validate)
 - Store settings and profiles under `%APPDATA%/vcon/`; copy defaults on first run
-- Implement `TrayIconService` with context menu (Show/Hide, Edit Mode, Profiles, Exit)
-- Implement `GlobalHotkeyService` (show/hide overlay, cycle profiles)
+- Implement `TrayIconService` with full context menu (Show/Hide, Edit Mode, Input Mode, Profiles with save/discard/clone/open-dir, Install ViGEmBus, Game Controllers, Exit)
+- Implement `GlobalHotkeyService` (show/hide overlay, toggle edit mode, cycle profiles)
 - Single-instance enforcement via named `Mutex`
 - DI composition in `App.xaml.cs`
 
-**Acceptance**: User can switch profiles from the tray, toggle the overlay with a hotkey, and all settings persist across app restarts.
-
-### Phase 6: Layout Editor
+### Phase 6: Layout Editor ✅
 
 **Goal**: In-app visual layout customization.
 
 - Implement edit mode toggle via hotkey and tray context menu
-- In edit mode: controls become draggable on the `Canvas`; input emulation is paused
-- Resize handles on controls (corner drag)
-- Visual indicators for edit mode (dashed borders, subtle grid overlay)
-- Auto-save layout changes to active profile on exiting edit mode
-
-**Acceptance**: User can rearrange and resize all controls visually, exit edit mode, and immediately use the new layout.
+- Locked default profile ("xbox-standard") auto-clones on edit attempt
+- JSON snapshot on enter; explicit save/discard via tray menu
+- In edit mode: controls become draggable on the `Canvas` with anchor-aware coordinate conversion
+- Resize handles on controls (bottom-right grip)
+- Visual indicators for edit mode (cyan border overlays on every control)
+- Input emulation paused during edit mode
+- Anchor-aware position persistence and stick radius persistence on resize
 
 ### Phase 7: Polish & v1.0 Release
 
@@ -673,10 +801,7 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 - Error handling audit (missing driver, corrupt profiles, display mode changes, app crash recovery)
 - Self-contained publish for **x64** and **ARM64**
 - README with screenshots, install instructions, usage guide, known limitations
-- Initialize `CHANGELOG.md`
 - Tag `v1.0.0`
-
-**Acceptance**: Clean install on a fresh Windows 10/11 machine; a new user can install, configure, and play a game with the virtual controller within 5 minutes.
 
 ---
 
@@ -684,9 +809,9 @@ Versions are centralized in `Directory.Packages.props`. Use latest stable at tim
 
 | Layer | Framework | Scope |
 |:---|:---|:---|
-| **Vcon.Core** | xUnit | Unit tests: `ControllerState` manipulation, profile serialization round-trips, `InputBinding` resolution, validation edge cases |
+| **Vcon.Core** | xUnit | Unit tests: `ControllerState` manipulation, profile serialization round-trips (including anchor properties), `InputBinding` resolution, validation edge cases |
 | **Vcon.Input** | xUnit | Unit tests: `SendInputEmulator` state-diffing logic (mock `SendInput` calls), `ViGEmAvailability` detection logic. `ViGEmEmulator` tested with mocked `IXbox360Controller` interface. |
-| **Vcon.Overlay** | xUnit | ViewModel unit tests: state transitions, profile switching, edit mode toggling, input dispatch routing |
+| **Vcon.Overlay** | xUnit + NSubstitute | ViewModel unit tests: state transitions, profile switching, edit mode enter/save/discard lifecycle, `IsEditMode` sync between `EditorViewModel` and `OverlayViewModel`, input dispatch routing |
 | **Integration** | Manual + scripted | End-to-end on physical hardware: touch input → ViGEm report visible in Game Controllers; keyboard injection verified in Notepad and a real game |
 | **Performance** | BenchmarkDotNet | Micro-benchmarks for the hot path (state update → report submission). Target: < 5 ms p99. |
 
@@ -696,7 +821,7 @@ All automated tests run via `make test` → `dotnet test`. CI (when configured) 
 
 ## 12. Security Considerations
 
-- **No admin required** for normal operation. ViGEmBus driver installation is a one-time admin action performed by the user outside vcon.
+- **No admin required** for normal operation. ViGEmBus driver installation is a one-time admin action performed by the user outside vcon (or via the tray menu installer which prompts for UAC).
 - **No hardcoded secrets**. Configuration files contain only layout and preference data.
 - **UIPI awareness**: `SendInput` cannot inject into elevated (admin) processes from a non-elevated vcon instance. This is by Windows design. Xbox emulation mode (ViGEmBus) is unaffected by UIPI.
 - **No process injection**: vcon does not hook, patch, or inject code into game processes. It operates entirely through OS-level input APIs.
@@ -720,3 +845,5 @@ These items are out of scope for v1 but influence architectural decisions — ab
 | **Visual themes and skins** | Alternative control styles beyond Xbox aesthetic; user-provided SVG assets |
 | **ARM64 native build** | .NET 8 supports ARM64 natively; relevant for Snapdragon-based handhelds |
 | **Multiple simultaneous virtual controllers** | Enable local co-op with one physical + one virtual controller; requires multi-device ViGEm management |
+| **Visual grid and snap-to-grid in edit mode** | Alignment guides to help position controls precisely |
+| **Add/remove controls in edit mode** | Allow users to add new controls or remove existing ones from the layout |
