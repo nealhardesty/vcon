@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Installer support (MSI + EXE)**: Added Inno Setup script (`installer/vcon.iss`) for EXE installer and WiX v5 definition (`installer/vcon.wxs`) for MSI installer. Both package the self-contained `dotnet publish` output with Start Menu shortcuts and uninstaller. The EXE installer also offers optional desktop shortcut and Windows startup entry.
+- **Makefile installer and release targets**: `installer-exe`, `installer-msi`, `installer`, `release` (clean + test + build both installers), and `release-github` (create GitHub release via `gh` CLI with both installer artifacts).
+- **Version management in Makefile**: `version-bump-patch`, `version-bump-minor`, `version-bump-major`, and `version-set VERSION_NEW=x.y.z` targets to manage `VersionPrefix` in `Directory.Build.props`.
+- **Makefile tool installation targets**: `install-innosetup` (via winget) and `install-wix` (via dotnet tool) for installing build prerequisites.
+- **Tray menu "About vcon"**: Shows a dialog with the app version (from assembly metadata), copyright, and a clickable link to the GitHub repository. Version and URL are read from assembly attributes at runtime — no hardcoded strings.
+- **Repository URL in assembly metadata**: Added `<RepositoryUrl>` to `Directory.Build.props` so the GitHub URL is embedded in the assembly and available at runtime.
 - **Custom application and tray icon**: Replaced the default Windows application icon with the vcon controller logo (`assets/vcon_icon2.png`). The icon is used both as the .exe application icon (multi-size ICO: 16, 32, 48, 256) and the system tray icon, with a fallback to `SystemIcons.Application` if loading fails.
 - **README logo**: Added the vcon icon to the top of `README.md`.
 - **Edit mode with drag-to-move and resize**: Controls are now freely movable and resizable in edit mode. Each control gets a cyan edit overlay with a resize grip at the bottom-right corner. Drag to reposition, drag the grip to resize. Anchor-aware coordinate conversion ensures positions remain correct regardless of horizontal/vertical anchoring.

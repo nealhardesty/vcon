@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  vcon - WiX MSI installer definition.
+
+  Build from repo root:
+    wix build -arch x64 -d Version=0.1.0 -d PublishDir=src\Vcon.Overlay\bin\Release\net8.0-windows\win-x64\publish -d DistDir=dist -o dist\vcon-0.1.0.msi installer\vcon.wxs
+
+  Or use the Makefile:
+    make installer-msi
+-->
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package Name="vcon"
+           Manufacturer="neal"
+           Version="$(Version)"
+           UpgradeCode="e8a3f2b1-7c4d-4e5a-9b6f-1d2e3f4a5b6c"
+           Scope="perMachine"
+           InstallerVersion="500">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of vcon is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="vcon" />
+    </StandardDirectory>
+
+    <!-- Harvest all files from publish output -->
+    <ComponentGroup Id="PublishedFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)\**" />
+    </ComponentGroup>
+
+    <!-- Start Menu shortcut -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Guid="*">
+        <Shortcut Id="VconStartMenuShortcut"
+                  Name="vcon"
+                  Target="[INSTALLFOLDER]vcon.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\vcon" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="vcon" Level="1">
+      <ComponentGroupRef Id="PublishedFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+  </Package>
+
+</Wix>

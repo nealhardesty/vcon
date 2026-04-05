@@ -1,9 +1,11 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <Authors>neal</Authors>
     <Product>vcon</Product>
-    <Copyright>Copyright © 2026 neal</Copyright>
+    <Copyright>Copyright Â© 2026 neal</Copyright>
+    <RepositoryUrl>https://github.com/nealhardesty/vcon</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

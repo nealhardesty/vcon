@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
@@ -176,6 +177,12 @@ public sealed class TrayIconService : IDisposable
             }
         };
         menu.Items.Add(controllersItem);
+
+        menu.Items.Add(new ToolStripSeparator());
+
+        var aboutItem = new ToolStripMenuItem("About vcon");
+        aboutItem.Click += (_, _) => ShowAboutDialog();
+        menu.Items.Add(aboutItem);
 
         menu.Items.Add(new ToolStripSeparator());
 
@@ -359,6 +366,106 @@ public sealed class TrayIconService : IDisposable
     private void Balloon(string text, ToolTipIcon icon)
     {
         _notifyIcon?.ShowBalloonTip(5000, "vcon", text, icon);
+    }
+
+    private void ShowAboutDialog()
+    {
+        var asm = Assembly.GetExecutingAssembly();
+        var version = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? "unknown";
+
+        // Strip the +commitsha suffix for display
+        var plusIndex = version.IndexOf('+');
+        if (plusIndex > 0)
+            version = version[..plusIndex];
+
+        var repoUrl = asm.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(a => a.Key == "RepositoryUrl")?.Value
+            ?? "https://github.com/nealhardesty/vcon";
+
+        var copyright = asm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? "";
+
+        using var form = new Form
+        {
+            Text = "About vcon",
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false,
+            StartPosition = FormStartPosition.CenterScreen,
+            ClientSize = new Size(340, 180),
+            ShowInTaskbar = false,
+            TopMost = true,
+        };
+
+        var icon = LoadAppIcon();
+        form.Icon = icon;
+
+        var pictureBox = new PictureBox
+        {
+            Image = icon.ToBitmap(),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            Location = new System.Drawing.Point(20, 20),
+            Size = new Size(48, 48),
+        };
+
+        var nameLabel = new Label
+        {
+            Text = $"vcon  v{version}",
+            Font = new Font(form.Font.FontFamily, 14f, FontStyle.Bold),
+            AutoSize = true,
+            Location = new System.Drawing.Point(80, 20),
+        };
+
+        var descLabel = new Label
+        {
+            Text = "Virtual Controller Overlay for Windows",
+            AutoSize = true,
+            Location = new System.Drawing.Point(80, 50),
+        };
+
+        var copyrightLabel = new Label
+        {
+            Text = copyright,
+            AutoSize = true,
+            ForeColor = SystemColors.GrayText,
+            Location = new System.Drawing.Point(80, 72),
+        };
+
+        var link = new LinkLabel
+        {
+            Text = repoUrl,
+            AutoSize = true,
+            Location = new System.Drawing.Point(80, 96),
+        };
+        link.LinkClicked += (_, _) =>
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(repoUrl) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to open repository URL");
+            }
+        };
+
+        var okButton = new Button
+        {
+            Text = "OK",
+            DialogResult = DialogResult.OK,
+            Size = new Size(80, 28),
+            Location = new System.Drawing.Point(form.ClientSize.Width - 100, form.ClientSize.Height - 40),
+        };
+        form.AcceptButton = okButton;
+
+        form.Controls.Add(pictureBox);
+        form.Controls.Add(nameLabel);
+        form.Controls.Add(descLabel);
+        form.Controls.Add(copyrightLabel);
+        form.Controls.Add(link);
+        form.Controls.Add(okButton);
+
+        form.ShowDialog();
     }
 
     private async Task RefreshProfilesSubmenu(ToolStripMenuItem profilesItem)

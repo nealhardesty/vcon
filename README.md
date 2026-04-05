@@ -71,20 +71,53 @@ dotnet run --project src/Vcon.Overlay/Vcon.Overlay.csproj
 
 ## Makefile Targets
 
+### Build
+
 | Target             | Description |
 |:-------------------|:------------|
 | `build`            | Build the solution (Release) |
 | `test`             | Run all xUnit tests |
 | `run`              | Launch the overlay application |
-| `clean`            | Remove build artifacts |
+| `clean`            | Remove build artifacts and `dist/` |
 | `clean-profiles`   | Remove user profiles from `%APPDATA%/vcon/profiles` (forces re-copy of defaults on next run) |
 | `lint`             | Verify formatting (`dotnet format --verify-no-changes`) |
 | `fmt`              | Auto-format code |
 | `restore`          | Restore NuGet packages |
 | `publish`          | Self-contained publish for win-x64 |
-| `install-vigembus` | Download and install the ViGEmBus driver (requires admin) |
-| `version`          | Display current version |
-| `help`             | List all targets |
+
+### Version
+
+| Target               | Description |
+|:---------------------|:------------|
+| `version`            | Display current version |
+| `version-bump-patch` | Increment patch version (x.y.Z) |
+| `version-bump-minor` | Increment minor version (x.Y.0) |
+| `version-bump-major` | Increment major version (X.0.0) |
+| `version-set`        | Set explicit version: `make version-set VERSION_NEW=x.y.z` |
+
+### Installers
+
+| Target             | Description |
+|:-------------------|:------------|
+| `installer-exe`    | Build Inno Setup EXE installer into `dist/` |
+| `installer-msi`    | Build WiX MSI installer into `dist/` |
+| `installer`        | Build both installers |
+
+### Release
+
+| Target             | Description |
+|:-------------------|:------------|
+| `release`          | Clean, test, and build both installers |
+| `release-github`   | `release` + create GitHub release via `gh` CLI |
+
+### Tool Installation
+
+| Target              | Description |
+|:--------------------|:------------|
+| `install-vigembus`  | Download and install the ViGEmBus driver (requires admin) |
+| `install-innosetup` | Install Inno Setup 6 via `winget` |
+| `install-wix`       | Install WiX Toolset v5 as a .NET global tool |
+| `help`              | List all targets |
 
 ## Configuration
 
@@ -156,6 +189,7 @@ Right-click the vcon tray icon to access:
 | Profiles > | Submenu: profile list, save/discard (edit mode), clone, open directory |
 | Install ViGEmBus Driver... | One-click driver download and install (shown only when driver is missing) |
 | Game Controllers... | Open the Windows Game Controllers panel (`joy.cpl`) |
+| About vcon | Show version, copyright, and link to the GitHub project |
 | Exit | Shut down vcon |
 
 ## Profile JSON Format
