@@ -5,7 +5,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Vcon.Overlay</RootNamespace>
     <AssemblyName>vcon</AssemblyName>
+    <ApplicationIcon>vcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="vcon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />

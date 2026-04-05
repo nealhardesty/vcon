@@ -42,7 +42,7 @@ public sealed class TrayIconService : IDisposable
 
         _notifyIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = LoadAppIcon(),
             Text = "vcon - Virtual Controller Overlay",
             Visible = true,
             ContextMenuStrip = BuildContextMenu(),
@@ -337,6 +337,23 @@ public sealed class TrayIconService : IDisposable
 
             _installDriverItem.Enabled = true;
         }
+    }
+
+    private static Icon LoadAppIcon()
+    {
+        try
+        {
+            var sri = System.Windows.Application.GetResourceStream(
+                new Uri("pack://application:,,,/vcon.ico"));
+            if (sri is not null)
+                return new Icon(sri.Stream);
+        }
+        catch
+        {
+            // Fall through to default
+        }
+
+        return SystemIcons.Application;
     }
 
     private void Balloon(string text, ToolTipIcon icon)
